@@ -1,0 +1,3 @@
+#ignore the file withe passes 
+.yaml*.yaml
+*.yml

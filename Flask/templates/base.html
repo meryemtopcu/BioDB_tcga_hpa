@@ -1,0 +1,142 @@
+{# ============================================================================================================
+  base.html  (Global layout for the whole Flask app)
+
+  WHY THIS EXISTS:
+  - You had repeated <head> + navbar + common JS/CSS in every page.
+  - Repetition => bugs + hard maintenance.
+  - base.html centralizes everything shared.
+
+  HOW CHILD PAGES USE IT:
+  - At top of any page:  {% extends "base.html" %}
+  - Then fill blocks:
+      {% block title %}...{% endblock %}
+      {% block content %}...{% endblock %}
+      {% block head_extra %}...{% endblock %}   (optional)
+      {% block scripts %}...{% endblock %}      (optional)
+============================================================================================================ #}
+
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- =========================
+       Required metadata
+       ========================= -->
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=yes">
+
+  <!-- =========================
+       Page title (overridable)
+       ========================= -->
+  <title>{% block title %}My BioDB{% endblock %}</title>
+
+  <!-- =========================
+       Favicon (shared)
+       ========================= -->
+  <link rel="shortcut icon" href="{{ url_for('static', filename='images/logo.png') }}">
+
+  <!-- =========================
+       Global CSS (shared)
+       - Bootstrap 4 is used by all pages.
+       ========================= -->
+  <link rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+
+  <!-- =========================
+       Optional: FontAwesome (shared)
+       - Keep only if you actually use icons anywhere.
+       - If not used: remove this to speed up load.
+       ========================= -->
+  <link rel="stylesheet"
+        href="https://use.fontawesome.com/releases/v5.6.3/css/all.css"
+        integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/"
+        crossorigin="anonymous">
+
+  <!-- =========================
+       Global JS libs (shared)
+       - Chart.js is used on Home + Results.
+       - Keeping it here avoids repeating <script> tags.
+       ========================= -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- =========================
+       Google Analytics (shared)
+       - If you don't want tracking in dev, you can gate it with an env flag.
+       ========================= -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XMXDYWMED4"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){window.dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-XMXDYWMED4');
+  </script>
+
+  <!-- =========================
+       Optional per-page <head> additions
+       - Example: page-specific CSS or meta tags.
+       ========================= -->
+  {% block head_extra %}{% endblock %}
+</head>
+
+<body>
+
+  <!-- ==========================================================================================
+       NAVBAR (shared)
+       - "active_page" is passed from Flask to highlight the current page.
+       - active_page values: "home", "about", "help", "contact" (add more if you want)
+       ========================================================================================== -->
+  <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
+    <a class="navbar-brand d-flex align-items-center" href="/">
+      <img src="{{ url_for('static', filename='images/logo.png') }}"
+        alt="My BioDB logo"
+        style="height:32px; margin-right:8px;">
+      BRCA / TCGA Browser
+    </a>
+
+    <div class="collapse navbar-collapse">
+      <ul class="navbar-nav ml-auto">
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'home' %}active{% endif %}" href="/">Home</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'about' %}active{% endif %}" href="/about">About</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'help' %}active{% endif %}" href="/help">Help</a>
+        </li>
+
+        <li class="nav-item">
+          <a class="nav-link {% if active_page == 'contact' %}active{% endif %}" href="/contact">Contact</a>
+        </li>
+
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ==========================================================================================
+       MAIN CONTENT AREA (shared container)
+       - All child templates render their unique page HTML here.
+       - Child pages should NOT create another container unless they want nested layout.
+       ========================================================================================== -->
+  <div class="container">
+    {% block content %}{% endblock %}
+  </div>
+
+  <!-- ==========================================================================================
+       Per-page scripts
+       - Kept at the end so DOM elements exist when JS runs.
+       - Charts / page-specific JS goes here.
+       ========================================================================================== -->
+  {% block scripts %}{% endblock %}
+
+  <!-- ==========================================================================================
+       Footer (shared)
+       ========================================================================================== -->
+  <footer class="text-muted small py-4 text-center">
+    My BioDB – personal learning project
+  </footer>
+
+</body>
+</html>

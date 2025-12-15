@@ -1,0 +1,302 @@
+{# ============================================================================================================
+  home.html (extends base.html)
+
+  GOAL:
+  - Provide a clean landing page:
+      (1) Gene search (gene_name -> /resolve)
+      (2) Global overview metrics (HPA gene categories + TCGA per-sample counts)
+      (3) Preview tables (LIMIT 10) for HPA + TCGA
+
+  IMPORTANT DESIGN DECISION:
+  - All shared dependencies (Bootstrap, Chart.js, GA, favicon, navbar) live in base.html.
+  - home.html contains ONLY page content + page-specific CSS + page-specific JS.
+
+  INPUTS FROM FLASK (app.py):
+  - hpa_gene_stats : object/dict with:
+        total_genes, high_genes, medium_genes, low_genes, not_detected_genes
+  - tcga_dup_rows  : list of tuples:
+        (sample_id, n_genes_not_repeated, n_genes_repeated_twice, n_distinct_genes)
+  - hpa_rows       : list of tuples for preview table
+  - tcga_rows      : list of tuples for preview table
+============================================================================================================ #}
+
+{% extends "base.html" %}
+{% block title %}Home – My BioDB{% endblock %}
+
+{# ============================================================================================================
+  head_extra:
+  - ONLY page-specific CSS goes here.
+  - Do NOT put GA, favicon, Bootstrap, Chart.js here (already in base.html).
+============================================================================================================ #}
+{% block head_extra %}
+<style>
+  /* Chart.js needs a stable height; otherwise it can render tiny */
+  .chart-box { height: 280px; width: 100%; }
+
+  /* Long sample_id should wrap instead of breaking the layout */
+  .sample-id { max-width: 260px; word-break: break-all; white-space: normal; }
+
+  /* Small spacing helper for text blocks */
+  .overview-box { padding-bottom: 0.5rem; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="mb-5">
+
+  <!-- ==========================================================================================
+       1) INTRODUCTION
+       - Explains the purpose quickly (good for grading + demos).
+       ========================================================================================== -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h1 class="h4 mb-3">BRCA – TCGA & HPA Integration</h1>
+      <p class="mb-0">
+        Search a gene symbol to explore <strong>TCGA RNA expression</strong> together with
+        a <strong>Human Protein Atlas (HPA)</strong> protein summary.
+        This page also shows small global stats and preview rows (LIMIT 10).
+      </p>
+    </div>
+  </div>
+
+  <!-- ==========================================================================================
+       2) SEARCH BOX
+       - Uses GET so the gene symbol appears in URL (shareable, debuggable).
+       - Goes to /resolve because gene_name can map to multiple gene_id values.
+       ========================================================================================== -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Search (Gene symbol)</h2>
+
+      <form action="{{ url_for('resolve') }}" method="GET" class="form-inline">
+        <div class="input-group w-100">
+          <input type="text"
+                 class="form-control"
+                 name="gene_name"
+                 placeholder="e.g. TP53, BRCA1, MATR3, U3, U4, CCDC39 or 7SK"
+                 required>
+          <div class="input-group-append">
+            <button class="btn btn-primary" type="submit">Search</button>
+            
+          </div>
+        </div>
+      </form>
+
+      <p class="small text-muted mt-2 mb-0">
+        If a gene symbol maps to multiple gene IDs, you will see a Resolve page to choose the correct ID.
+      </p>
+
+      <p class="small text-muted mt-2 mb-0">
+      Example: <a href="{{ url_for('resolve', gene_name='MATR3') }}">MATR3</a>
+      </p>
+
+      <p class="small text-muted mt-2 mb-0">
+      Example: <a href="{{ url_for('resolve', gene_name='BRCA1') }}">BRCA1</a>
+      </p>
+    </div>
+  </div>
+
+  <!-- ==========================================================================================
+       3) GLOBAL DATABASE OVERVIEW (for grading checklist)
+       - High-level stats on Home page (teacher requirement)
+       ========================================================================================== -->
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="h6 mb-3">Database overview (global statistics)</h2>
+
+      <div class="row">
+        <!-- LEFT: HPA overview + chart -->
+        <div class="col-md-6 mb-3">
+          <h3 class="h6">HPA (protein) – genes per category</h3>
+
+          {% if hpa_gene_stats %}
+            <ul class="small mb-3 pl-3">
+              <li>Total genes: <strong>{{ hpa_gene_stats.total_genes }}</strong></li>
+              <li>High: {{ hpa_gene_stats.high_genes }}</li>
+              <li>Medium: {{ hpa_gene_stats.medium_genes }}</li>
+              <li>Low: {{ hpa_gene_stats.low_genes }}</li>
+              <li>Not detected: {{ hpa_gene_stats.not_detected_genes }}</li>
+            </ul>
+
+            <div class="chart-box">
+              <canvas id="hpaGeneBar"></canvas>
+            </div>
+          {% else %}
+            <p class="small text-muted mb-0">No HPA overview stats available.</p>
+          {% endif %}
+        </div>
+
+        <!-- RIGHT: TCGA overview (sample-level) -->
+        <div class="col-md-6 mb-3">
+          <h3 class="h6">TCGA (RNA) – sample-level overview</h3>
+
+          {% if tcga_dup_rows and (tcga_dup_rows|length > 0) %}
+            <p class="small mb-2">
+              Samples in overview table: <strong>{{ tcga_dup_rows|length }}</strong>
+            </p>
+
+            <div class="table-responsive small">
+              <table class="table table-sm table-striped table-bordered">
+                <thead class="thead-light">
+                  <tr>
+                    <th class="sample-id">Sample ID</th>
+                    <th>Distinct genes</th>
+                    <th>Repeated twice</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for r in tcga_dup_rows[:10] %}
+                  <tr>
+                    <td class="sample-id">{{ r[0] }}</td>
+                    <td>{{ r[3] }}</td>
+                    <td>{{ r[2] }}</td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+
+            <p class="small text-muted mb-0">
+              Note: showing first 10 rows for readability.
+            </p>
+          {% else %}
+            <p class="small text-muted mb-0">No TCGA overview stats available.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ==========================================================================================
+       PREVIEW TABLES (LIMIT 10)
+       - Purpose: quick sanity check that DB is populated.
+       - Full detail belongs to Results page.
+       ========================================================================================== -->
+  <div class="row mb-5">
+
+    <!-- HPA preview -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5 mb-3">HPA sample (protein)</h2>
+          <p class="small text-muted mb-2">Preview only (LIMIT 10).</p>
+
+          <div class="data-table-wrapper table-responsive small">
+            <table class="table table-sm table-striped table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th>Gene<br><small class="text-muted">click to open HPA</small></th>
+                  <th>Gene ID</th>
+                  <th>Cancer</th>
+                  <th>High</th>
+                  <th>Medium</th>
+                  <th>Low</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in hpa_rows %}
+                <tr>
+                  <td>
+                    <a href="https://www.proteinatlas.org/{{ row[0] }}-{{ row[1] }}"
+                       target="_blank" rel="noopener noreferrer">{{ row[1] }}</a>
+                  </td>
+                  <td>{{ row[0] }}</td>
+                  <td>{{ row[2] }}</td>
+                  <td>{{ row[3] }}</td>
+                  <td>{{ row[4] }}</td>
+                  <td>{{ row[5] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- TCGA preview -->
+    <div class="col-lg-6 mb-4">
+      <div class="card">
+        <div class="card-body">
+          <h2 class="h5 mb-3">TCGA sample (RNA)</h2>
+          <p class="small text-muted mb-2">Preview only (LIMIT 10).</p>
+
+          <div class="data-table-wrapper table-responsive small">
+            <table class="table table-sm table-striped table-bordered">
+              <thead class="thead-light">
+                <tr>
+                  <th>Sample ID</th>
+                  <th>Gene</th>
+                  <th>Gene ID</th>
+                  <th>TPM (unstranded)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for row in tcga_rows %}
+                <tr>
+                  <td>{{ row[0] }}</td>
+                  <td>{{ row[2] }}</td>
+                  <td>{{ row[1] }}</td>
+                  <td>{{ row[6] }}</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+  // ------------------------------------------------------------------------------------------------
+  // Chart helper: coerces values into numbers.
+  // - Jinja injects Python numbers directly into JS.
+  // - This prevents string/None issues.
+  // ------------------------------------------------------------------------------------------------
+  function toNumber(value) {
+    return (value === null || value === undefined) ? 0 : Number(value);
+  }
+
+  // ------------------------------------------------------------------------------------------------
+  // Build HPA bar chart ONLY if stats exist (template guard) AND canvas exists (DOM guard).
+  // ------------------------------------------------------------------------------------------------
+  {% if hpa_gene_stats %}
+    const canvas = document.getElementById('hpaGeneBar');
+
+    if (canvas) {
+      const ctx = canvas.getContext('2d');
+
+      const high = toNumber({{ hpa_gene_stats.high_genes }});
+      const medium = toNumber({{ hpa_gene_stats.medium_genes }});
+      const low = toNumber({{ hpa_gene_stats.low_genes }});
+      const nd = toNumber({{ hpa_gene_stats.not_detected_genes }});
+
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: ['High', 'Medium', 'Low', 'Not detected'],
+          datasets: [{
+            data: [high, medium, low, nd]
+          }]
+        },
+        options: {
+          responsive: true,
+          plugins: { legend: { display: false } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+    }
+  {% endif %}
+</script>
+{% endblock %}

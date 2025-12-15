@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}About – My BioDB{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-2">About My BioDB</h1>
+
+<p class="text-muted mb-4">
+  My BioDB is a lightweight educational web application that integrates
+  <strong>TCGA-BRCA RNA-seq gene expression</strong> with <strong>Human Protein Atlas (HPA)</strong> protein expression summaries,
+  and exposes them through a searchable MySQL-backed website.
+</p>
+
+<!-- =======================================================================================================
+     PROJECT MOTIVATION / LEARNING GOALS
+======================================================================================================= -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-2">Why it was built (learning goals)</h2>
+    <ul class="mb-0">
+      <li><strong>Database design & loading:</strong> build relational tables and import large biological datasets.</li>
+      <li><strong>SQL querying:</strong> filter, aggregate, and summarize gene- and sample-level information.</li>
+      <li><strong>Backend:</strong> connect user input to database queries using Flask routes and helper functions.</li>
+      <li><strong>Frontend:</strong> present results with Bootstrap tables and Chart.js visual summaries.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- =======================================================================================================
+     DATA SOURCES
+======================================================================================================= -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-2">Data sources in this prototype</h2>
+    <ul class="mb-0">
+      <li><strong>TCGA-BRCA (RNA expression):</strong> RNA-seq quantification per sample (e.g., counts/TPM/FPKM depending on the imported columns).</li>
+      <li><strong>Human Protein Atlas (HPA):</strong> gene-level protein detection categories (High / Medium / Low / Not detected) for a cancer type.</li>
+    </ul>
+    <p class="small text-muted mt-2 mb-0">
+      Note: this project uses a subset of rows/columns imported into MySQL for learning and demonstration.
+    </p>
+  </div>
+</div>
+
+<!-- =======================================================================================================
+     WHAT YOU CAN SEE
+======================================================================================================= -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-2">What this app shows</h2>
+    <ul class="mb-0">
+      <li><strong>TCGA:</strong> per-sample RNA expression values for the selected gene ID.</li>
+      <li><strong>HPA:</strong> gene-level protein detection summary (if available for that gene).</li>
+      <li><strong>Charts:</strong> quick visual overview of HPA categories and TCGA TPM per sample.</li>
+      <li><strong>External links:</strong> pointers to NCBI Gene, Ensembl, and HPA for further validation.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- =======================================================================================================
+     RESOLVE + IMPORTANT NOTES
+======================================================================================================= -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-2">Gene symbol vs. Gene ID (why “Resolve” exists)</h2>
+    <p class="mb-2">
+      Users search by <strong>gene symbol</strong> (e.g., <code>MATR3</code>), but the database queries are performed using
+      <strong>stable Ensembl Gene IDs</strong> (<code>ENSG...</code>).
+    </p>
+    <ul class="mb-0">
+      <li>Some symbols map to <strong>multiple</strong> Ensembl Gene IDs (annotation differences) → the Resolve page lets you choose.</li>
+      <li>A gene can have TCGA RNA data but no HPA entry (protein table coverage is a subset).</li>
+      <li>Some resolved IDs can show 0 expression in this dataset; choosing another candidate ID may change the result.</li>
+    </ul>
+
+    <p class="small text-muted mt-3 mb-0">
+      Example gene with both sources available:
+      <a href="{{ url_for('resolve', gene_name='MATR3') }}">MATR3</a>
+    </p>
+  </div>
+</div>
+
+<!-- =======================================================================================================
+     TECH STACK
+======================================================================================================= -->
+<div class="card mb-4">
+  <div class="card-body">
+    <h2 class="h5 mb-2">Technical stack</h2>
+    <ul class="mb-0">
+      <li><strong>Backend:</strong> Flask (Python)</li>
+      <li><strong>Database:</strong> MySQL</li>
+      <li><strong>Frontend:</strong> Bootstrap 4</li>
+      <li><strong>Charts:</strong> Chart.js</li>
+      <li><strong>Config:</strong> YAML for database credentials</li>
+    </ul>
+  </div>
+</div>
+
+<!-- =======================================================================================================
+     FUTURE EXTENSIONS
+======================================================================================================= -->
+<div class="card mb-2">
+  <div class="card-body">
+    <h2 class="h5 mb-2">Possible future extensions</h2>
+    <ul class="mb-0">
+      <li>Add additional cancer types / cohorts and a cancer-type filter.</li>
+      <li>Add a curated gene symbol ↔ Ensembl ID mapping table to reduce ambiguity.</li>
+      <li>Add normalization/summary metrics (e.g., percentiles, z-scores) and better comparisons across samples.</li>
+      <li>Add pagination and performance optimizations for large result sets.</li>
+      <li>Expose a small JSON API endpoint for programmatic use.</li>
+    </ul>
+  </div>
+</div>
+
+{% endblock %}
+

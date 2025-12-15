@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Stats – My BioDB{% endblock %}
+
+{% block content %}
+<div class="my-4">
+    <div class="alert alert-info">
+  DEBUG: tcga_dup_rows={{ tcga_dup_rows|length }}, limit={{ limit }}
+</div>
+
+
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0">Stats</h1>
+    <a class="btn btn-sm btn-outline-secondary" href="/">Home</a>
+  </div>
+
+  <div class="card mb-4">
+    <div class="card-body">
+      <h2 class="h6">TCGA – per-sample gene counts (preview)</h2>
+      <p class="small text-muted mb-2">
+        Showing first <strong>{{ limit }}</strong> samples. Click a sample_id to view all genes in that sample.
+      </p>
+
+      <div class="table-responsive">
+        <table class="table table-sm table-striped table-bordered mb-0">
+          <thead class="thead-light">
+            <tr>
+              <th>sample_id</th>
+              <th>not repeated</th>
+              <th>repeated twice</th>
+              <th>distinct genes</th>
+              <th style="width:120px;">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for r in tcga_dup_rows %}
+            <tr>
+              <td class="small">
+                <a href="{{ url_for('sample_detail') }}?sample_id={{ r[0] }}">{{ r[0] }}</a>
+              </td>
+              <td>{{ r[1] }}</td>
+              <td>{{ r[2] }}</td>
+              <td>{{ r[3] }}</td>
+              <td>
+                <a class="btn btn-sm btn-primary"
+                   href="{{ url_for('sample_detail') }}?sample_id={{ r[0] }}">View</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+{% endblock %}

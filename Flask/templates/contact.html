@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Contact – My BioDB{% endblock %}
+
+{% block content %}
+
+<h1 class="h3 mb-3">Contact</h1>
+
+<form method="POST">
+  <div class="form-group">
+    <label>Email (optional)</label>
+    <input type="email" class="form-control" name="email">
+  </div>
+
+  <div class="form-group">
+    <label>Gene name</label>
+    <input type="text" class="form-control" name="gene">
+  </div>
+
+  <div class="form-group">
+    <label>Message</label>
+    <textarea class="form-control" name="message" rows="5"></textarea>
+  </div>
+
+  <button class="btn btn-primary">Send</button>
+</form>
+
+{% endblock %}
