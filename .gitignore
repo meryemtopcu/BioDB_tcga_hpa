@@ -1,3 +1,15 @@
 #ignore the file withe passes 
 .yaml*.yaml
 *.yml
+
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.pyc
+
+# secrets
+Flask/db.yaml
+.env
+
