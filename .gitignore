@@ -13,3 +13,4 @@ __pycache__/
 Flask/db.yaml
 .env
 
+*.sql
