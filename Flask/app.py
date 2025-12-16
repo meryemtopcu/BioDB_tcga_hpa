@@ -4,6 +4,7 @@ import yaml
 import time
 
 
+
 app = Flask(
     __name__,
     static_folder="static",      # static folder
@@ -320,6 +321,28 @@ def get_tcga_tpm_by_sample_for_gene_id(gene_id):
    
 # =========================================================================================================================================================================
 
+
+# ============================================================
+# API 1: Gene details by gene_id (unique)  -> JSON
+# URL: /api/gene/ENSG00000012048
+# ============================================================
+from flask import jsonify
+
+@app.route("/api/gene/<gene_id>", methods=["GET"])
+def api_gene(gene_id):
+    # 1)get from DB 
+    hpa_row = get_hpa_by_gene_id(gene_id)          
+    tcga_rows = get_tcga_rows_by_gene_id(gene_id)  
+
+    if not hpa_row and not tcga_rows:
+        return jsonify({"error": "gene_id not found", "gene_id": gene_id}), 404
+
+    return jsonify({
+        "gene_id": gene_id,
+        "hpa": hpa_row,          # make a dict 
+        "tcga_samples": tcga_rows,
+        "tcga_sample_count": len(tcga_rows)
+    }), 200
 
 
 # =====ROUTES====================================================================================================================================================================

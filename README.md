@@ -46,14 +46,39 @@ This project was built to:
 
 The database follows a **gene-centric relational model**.
 
+---
+
+## Features
+
+- Home page with data and search function 
+    - Search by gene name converst gene_name to gene_id
+    - External links to:
+        - Human Protein Atlas gene pages
+        - TCGA-related resources
+- Result page 
+    - TCGA per-sample expression table
+    - HPA gene-level protein summary
+- Resolve page 
+    - table of the gene has more than single gene_id to the correspondign gene_name 
+- API end point
+  - Get gene data by gene_id
+
+---
+**API endpoint**
+Returns HPA gene-level info + TCGA per-sample expression rows for a single Ensembl gene_id.
+GET /api/gene/<gene_id>
+Example:
+GET /api/gene/ENSG00000000971
+---
+
 ### Core Tables
 
 ```text
-tcga_expression
+tcga
 ---------------
 sample_id
 gene_id (FK → genes.gene_id)
-expression_values
+expression_values (unstranded, unstranded )
 
 hpa_summary
 -----------
@@ -62,7 +87,7 @@ high
 medium
 low
 not_detected
-
+```
 ---
 
 ## Design Rationale
@@ -87,24 +112,11 @@ not_detected
 
 ## Data Flow
 
-```text
 User input (gene name)
 → Flask route
 → SQL queries
 → Data aggregation
 → HTML tables and charts
-
----
-
-## Features
-
-- Search by gene name
-- TCGA per-sample expression table
-- HPA gene-level protein summary
-- External links to:
-  - Human Protein Atlas gene pages
-  - TCGA-related resources
-
 ---
 
 ## Requirements

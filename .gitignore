@@ -12,7 +12,12 @@ Flask/db.yaml
 # database dumps (GitHub file size limit)
 *.sql
 
-# YAML ( ignore all YAML)
-# *.yaml
-# *.yml
+# YAML
+*.yaml
+*.yml
 
+#not complete files
+stats.html
+readme file 
+Flask_Database.pptx
+~.pptx
